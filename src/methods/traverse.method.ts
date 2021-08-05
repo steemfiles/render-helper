@@ -12,32 +12,36 @@ export function traverse(node: Node, forApp: boolean, depth = 0, webp = false): 
     .map(i => node.childNodes[i])
     .forEach(child => {
       try {
-        //  For InforWars.  The embedding code is a div followed by a script
+        // For InforWars.  The embedding code is a div followed by a script tag
+        // The script will always be a specific javascript URL on the Infowars server.
+        // Note that should any of these conditions fail, the code will be a no-OP.
         // The code replaces it with a single HTTPS link and then sends it 
-        // to a(). 
+        // to a().  a() will convert the link to embedding via an iframe.
         let scriptNode;
         let scriptSrc : string | null;
         let dataVideoId : string | null;
+
         if (child.nodeName.toLowerCase() === 'div' && (scriptNode=child.nextSibling) 
-          && scriptNode.nodeName.toLowerCase() === 'script'
-          // simply fail this check if getAttribute is not available in this version of node
-          // @ts-ignore
-          && !!scriptNode['getAttribute']
-          // @ts-ignore
-          && (scriptSrc=scriptNode.getAttribute('src'))
-          && scriptSrc === "https://infowarsmedia.com/js/player.js"
-          // @ts-ignore
-          && (dataVideoId=child.getAttribute('data-video-id'))) {
-             const newURL = `https://freeworldnews.tv/watch?id=${dataVideoId}`
-             const aNode = child.ownerDocument.createElement('aNode')
-             aNode.textContent = newURL
-             aNode.setAttribute('href', newURL)
-             
-             child.parentNode.insertBefore(aNode, child) 
-             child.parentNode.removeChild(scriptNode)
-             child.parentNode.removeChild(child)
-             a(<HTMLElement>aNode, forApp, webp)
-          }
+            && scriptNode.nodeName.toLowerCase() === 'script'
+            // simply fail this check if getAttribute is not available in this version of node
+            // @ts-ignore
+            && !!scriptNode['getAttribute']
+            // @ts-ignore
+            && (scriptSrc=scriptNode.getAttribute('src'))
+            && scriptSrc === "https://infowarsmedia.com/js/player.js"
+            // @ts-ignore
+            && (dataVideoId=child.getAttribute('data-video-id'))) {
+          const newURL = `https://freeworldnews.tv/watch?id=${dataVideoId}`
+          const aNode = child.ownerDocument.createElement('aNode')
+          aNode.textContent = newURL
+          aNode.setAttribute('href', newURL)
+
+          child.parentNode.insertBefore(aNode, child)
+          child.parentNode.removeChild(scriptNode)
+          child.parentNode.removeChild(child)
+          a(<HTMLElement>aNode, forApp, webp)
+          return
+        }
       } catch (e) {
         console.log(e)
       }

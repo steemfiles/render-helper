@@ -10,9 +10,10 @@ export function iframe(el: HTMLElement): void {
 
   try {
 
+  // This wont appear in the wild but should traverse be called on already
+  // rendered stuff this will prevent it from breaking.
   const IWmatch = src.match(INFOWARS_EMBED_REGEX)
   if (IWmatch) {
-    //el.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups')
     el.setAttribute('allowfullscreen', 'true')
     el.setAttribute('frameborder', '0')
     return
